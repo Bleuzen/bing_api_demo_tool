@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -40,22 +41,18 @@ public class a extends JFrame {
 	private JSpinner spinnerSeiten;
 	private JLabel lblSeiten;
 	private JScrollPane scrollPane;
-	
-	private static Logger logger;
 	static String site;
 	private JButton btnReset;
+	private JCheckBox chckbxDebug;
 
 	public static void main(String[] args) {
-		
-    	// setup own logger
-    	logger = (Logger) LoggerFactory.getLogger(a.class);
-    	logger.setLevel(Level.DEBUG);
-    	
-    	// setup apache http client logger
-    	Logger apacheLogger = (Logger) LoggerFactory.getLogger("org.apache.http");
-    	apacheLogger.setLevel(Level.WARN);
-		
+
+		// setup apache http client logger
+		Logger apacheLogger = (Logger) LoggerFactory.getLogger("org.apache.http");
+		apacheLogger.setLevel(Level.WARN);
+
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					if(System.getProperty("os.name").toLowerCase().equals("linux") && System.getenv("XDG_CURRENT_DESKTOP").toLowerCase().equals("kde")) {
@@ -65,7 +62,7 @@ public class a extends JFrame {
 						// Use the systems theme
 						UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 					}
-					
+
 					a frame = new a();
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -84,22 +81,23 @@ public class a extends JFrame {
 		contentPane = new JPanel();
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
-		
+
 		panelAuswertung = new JPanel();
 		panelAuswertung.setBorder(new TitledBorder(null, "Auswertung", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		panelAuswertung.setBounds(10, 66, 874, 294);
 		contentPane.add(panelAuswertung);
-		
+
 		lblUrl = new JLabel("URL:");
 		lblUrl.setBounds(10, 36, 40, 18);
 		contentPane.add(lblUrl);
-		
+
 		txtUrl = new JTextField();
-		txtUrl.setBounds(60, 34, 616, 24);
+		txtUrl.setBounds(60, 34, 598, 24);
 		contentPane.add(txtUrl);
-		
+
 		btnAuswerten = new JButton("Mach");
 		btnAuswerten.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if(txtKey.getText().isEmpty() || txtUrl.getText().isEmpty()) {
 					String txtBefore = btnAuswerten.getText();
@@ -108,12 +106,18 @@ public class a extends JFrame {
 					btnAuswerten.setText(txtBefore);
 					return;
 				}
-				
+
 				btnAuswerten.setEnabled(false);
 				txtUrl.setEnabled(false);
 				txtKey.setEnabled(false);
 				spinnerSeiten.setEnabled(false);
-				
+
+				if(chckbxDebug.isSelected()) {
+					Log.log.setLevel(Level.DEBUG);
+				} else {
+					Log.log.setLevel(Level.INFO);
+				}
+
 				site = txtUrl.getText();
 				new Thread(new Runnable() {
 					@Override
@@ -128,19 +132,20 @@ public class a extends JFrame {
 		});
 		btnAuswerten.setBounds(774, 34, 108, 24);
 		contentPane.add(btnAuswerten);
-		
+
 		lblKey = new JLabel("Key:");
 		lblKey.setBounds(10, 11, 40, 18);
 		contentPane.add(lblKey);
-		
+
 		txtKey = new JTextField();
-		txtKey.setBounds(60, 8, 710, 24);
+		txtKey.setBounds(60, 8, 598, 24);
 		contentPane.add(txtKey);
-		
+
 		panelAuswertung.setLayout(null);
-		
+
 		btnAuswSubdomains = new JButton("Subdomains");
 		btnAuswSubdomains.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				txtrLog.append(System.lineSeparator());
 				OldMain.subdomainsAusgeben();
@@ -148,10 +153,11 @@ public class a extends JFrame {
 		});
 		btnAuswSubdomains.setBounds(10, 18, 120, 24);
 		panelAuswertung.add(btnAuswSubdomains);
-		
+
 		btnAuswDuplikate = new JButton("Duplikate");
 		btnAuswDuplikate.setToolTipText("Finde URLs mit unterschiedlichen Protokollen");
 		btnAuswDuplikate.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				txtrLog.append(System.lineSeparator());
 				OldMain.duplikateMitAnderemProtokollAusgeben();
@@ -159,10 +165,11 @@ public class a extends JFrame {
 		});
 		btnAuswDuplikate.setBounds(362, 18, 120, 24);
 		panelAuswertung.add(btnAuswDuplikate);
-		
+
 		btnAuswFundorte = new JButton("Fundorte");
 		btnAuswFundorte.setToolTipText("Auf welchen Bing Seiten die URL gefunden wurde");
 		btnAuswFundorte.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				txtrLog.append(System.lineSeparator());
 				OldMain.seitennummernZuUrlsAusgeben();
@@ -170,46 +177,51 @@ public class a extends JFrame {
 		});
 		btnAuswFundorte.setBounds(742, 18, 120, 24);
 		panelAuswertung.add(btnAuswFundorte);
-		
+
 		scrollPane = new JScrollPane();
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBounds(10, 48, 854, 238);
 		panelAuswertung.add(scrollPane);
-		
+
 		txtrLog = new JTextArea();
 		scrollPane.setViewportView(txtrLog);
 		txtrLog.setEditable(false);
 		txtrLog.setLineWrap(true);
-		
-    	// setup GUI logger
-    	new LogbackAppenderForGUI(txtrLog);
-		
+
+		// setup GUI logger
+		new LogbackAppenderForGUI(txtrLog);
+
 		spinnerSeiten = new JSpinner();
 		spinnerSeiten.setModel(new SpinnerNumberModel(30, 1, 50, 1));
-		spinnerSeiten.setBounds(824, 8, 56, 24);
+		spinnerSeiten.setBounds(714, 9, 56, 24);
 		contentPane.add(spinnerSeiten);
-		
+
 		lblSeiten = new JLabel("Seiten:");
-		lblSeiten.setBounds(776, 10, 44, 18);
+		lblSeiten.setBounds(664, 11, 46, 18);
 		contentPane.add(lblSeiten);
-		
+
 		Utils.setJPanelEnabled(panelAuswertung, false);
-		
+
 		btnReset = new JButton("Reset");
 		btnReset.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				btnAuswerten.setEnabled(true);
 				txtUrl.setEnabled(true);
 				txtKey.setEnabled(true);
 				spinnerSeiten.setEnabled(true);
 				txtUrl.setText("");
-				txtKey.setText("");
-				spinnerSeiten.setValue(30);
+				spinnerSeiten.setValue(25);
 				Utils.setJPanelEnabled(panelAuswertung, false);
+				txtUrl.requestFocus();
 			}
 		});
-		btnReset.setBounds(680, 34, 90, 24);
+		btnReset.setBounds(662, 34, 108, 24);
 		contentPane.add(btnReset);
+
+		chckbxDebug = new JCheckBox("Debug");
+		chckbxDebug.setBounds(776, 9, 106, 23);
+		contentPane.add(chckbxDebug);
 	}
 }
